@@ -11,6 +11,9 @@
       "url": "http://www.apache.org/licenses/LICENSE-2.0"
     }
   ],
+  "files": [
+    "lib"
+  ],
   "dependencies": {
     "casbin": "^2.0.1",
     "knex": "^0.16.5"
