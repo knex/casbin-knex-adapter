@@ -22,16 +22,9 @@ const KnexAdapter = require('casbin-knex-adapter');
 
 (async function() {
   // Create adapter
-  const adapter = await KnexAdapter.newAdapter({
-    client: 'pg',
-    connection: {
-      host: 'localhost',
-      port: 5432,
-      user: 'user',
-      password: 'password',
-      database: 'database'
-    }
-  });
+  const adapter = await KnexAdapter.newAdapter(knexOptions);
+  // or pass a Knex instance
+  // const adapter = await KnexAdapter.newAdapter(knexInstance);
 
   // Create casbin enforcer
   const enforcer = await casbin.newEnforcer('model.conf', adapter);
