@@ -1,6 +1,6 @@
 {
   "name": "casbin-knex-adapter",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Knex adapter for Casbin",
   "main": "lib/adapter.js",
   "repository": "git@github.com:sarneeh/casbin-knex-adapter.git",
