@@ -17,5 +17,9 @@
   "dependencies": {
     "casbin": "^2.0.1",
     "knex": "^0.16.5"
+  },
+  "devDependencies": {
+    "jest": "^25.1.0",
+    "mock-knex": "^0.4.7"
   }
 }
