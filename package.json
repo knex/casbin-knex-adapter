@@ -16,7 +16,7 @@
     "test:coverage": "jest --config=jest.config.json --coverage"
   },
   "dependencies": {
-    "casbin": "^2.0.1"
+    "casbin": "^2.0.4"
   },
   "peerDependencies": {
     "knex": ">=0.16.5"
@@ -30,7 +30,7 @@
     "eslint-config-prettier": "^7.1.0",
     "eslint-plugin-prettier": "^3.3.0",
     "jest": "^26.6.3",
-    "knex": "~0.16.5",
+    "knex": "~0.21.15",
     "mssql": "^6.3.1",
     "mysql": "^2.18.1",
     "mysql2": "^2.2.5",
