@@ -1,6 +1,6 @@
 ---
 
-name: coverage
+name: Coverage
 
 on:
   push:
@@ -10,11 +10,12 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: coverage
+    name: Coverage
 
     strategy:
+      fail-fast: false
       matrix:
-        node-version: [15.x]
+        node-version: [14.x]
 
     steps:
       - name: Checkout Repository
@@ -28,6 +29,9 @@ jobs:
           always-auth: false
           node-version: ${{ matrix.node-version }}
 
+      - name: Start Databases
+        run: npm run db:start
+
       - name: Run npm install
         run: npm install
 
@@ -35,8 +39,13 @@ jobs:
         run: npm run test:coverage
         env:
           CI: true
+          DB: "postgres mysql mysql2 mssql sqlite"
 
-      - name: Coveralls
+      - name: Stop Databases
+        run: npm run db:stop
+
+      - name: Update Coveralls
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+        if: success()
