@@ -2,7 +2,7 @@
   "name": "casbin-knex-adapter",
   "version": "0.2.0",
   "description": "Knex adapter for Casbin",
-  "main": "lib/adapter.ts",
+  "main": "dist/index.js",
   "repository": "git@github.com:sarneeh/casbin-knex-adapter.git",
   "author": "Jakub Sarnowski <sarneeh@gmail.com>",
   "license": "Apache-2.0",
@@ -10,7 +10,10 @@
     "build": "tsc",
     "db:start": "docker-compose -f scripts/docker-compose.yml up --build -d mysql postgres mssql && docker-compose -f scripts/docker-compose.yml up initmssqlknexdb waitmysql waitpostgres",
     "db:stop": "docker-compose -f scripts/docker-compose.yml down",
-    "test": "jest --runInBand"
+    "lint": "eslint --format codeframe \"test/**/*.ts\"",
+    "prettier": "prettier --write \"{lib,test}/**/*.{js,ts}\" index.ts",
+    "test": "jest --runInBand",
+    "test:coverage": "jest --config=jest.config.json --coverage"
   },
   "dependencies": {
     "casbin": "^2.0.1"

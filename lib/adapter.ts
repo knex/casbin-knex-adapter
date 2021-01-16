@@ -4,10 +4,10 @@
 const Knex = require('knex');
 const { Helper } = require('casbin');
 
-class KnexAdapter {
+export class KnexAdapter {
   constructor(knex, tableName = 'policies') {
     this.knex = knex;
-    this.tableName = tableName ;
+    this.tableName = tableName;
   }
 
   static async newAdapter(arg) {
@@ -27,11 +27,10 @@ class KnexAdapter {
     return knex('policies');
   }
 
-
   async createTable() {
     const tableExists = await this.knex.schema.hasTable(this.tableName);
     if (!tableExists) {
-      await this.knex.schema.createTable(this.tableName, table => {
+      await this.knex.schema.createTable(this.tableName, (table) => {
         table.increments('id').primary();
         table.string('ptype').nullable();
         table.string('v0').nullable();
@@ -60,7 +59,7 @@ class KnexAdapter {
       v2: rule[2],
       v3: rule[3],
       v4: rule[4],
-      v5: rule[5]
+      v5: rule[5],
     };
   }
 
@@ -106,7 +105,7 @@ class KnexAdapter {
       policy.ptype +
       ', ' +
       [policy.v0, policy.v1, policy.v2, policy.v3, policy.v4, policy.v5]
-        .filter(v => v)
+        .filter((v) => v)
         .join(', ');
 
     Helper.loadPolicyLine(policyLine, model);
@@ -126,7 +125,7 @@ class KnexAdapter {
 
     await this.policies.insert([
       ...this.createPoliciesFromAstMap(model.model.get('p')),
-      ...this.createPoliciesFromAstMap(model.model.get('g'))
+      ...this.createPoliciesFromAstMap(model.model.get('g')),
     ]);
   }
 
@@ -145,10 +144,3 @@ class KnexAdapter {
     await this.policies.delete().where(filteredPolicy);
   }
 }
-
-module.exports = KnexAdapter
-module.exports.default = KnexAdapter
-module.exports.KnexAdapter = KnexAdapter
-
-export { KnexAdapter }
-export default KnexAdapter
