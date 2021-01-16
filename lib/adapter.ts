@@ -1,7 +1,7 @@
 // ToDo implement types
 // @ts-nocheck
 
-const Knex = require('knex');
+import Knex from 'knex';
 const { Helper } = require('casbin');
 
 export class KnexAdapter {
@@ -10,21 +10,15 @@ export class KnexAdapter {
     this.tableName = tableName;
   }
 
-  static async newAdapter(arg) {
-    const knex = this.isKnex(arg) ? arg : Knex(arg);
-
+  static async newAdapter(knex: Knex) {
     const adapter = new KnexAdapter(knex);
     await adapter.createTable();
 
     return adapter;
   }
 
-  static isKnex(arg) {
-    return typeof arg === 'function';
-  }
-
-  get policies() {
-    return knex('policies');
+  private get policies() {
+    return this.knex('policies');
   }
 
   async createTable() {
@@ -51,16 +45,20 @@ export class KnexAdapter {
     await this.knex.destroy();
   }
 
-  createPolicy(ptype, rule) {
-    return {
-      ptype,
-      v0: rule[0],
-      v1: rule[1],
-      v2: rule[2],
-      v3: rule[3],
-      v4: rule[4],
-      v5: rule[5],
-    };
+  createPolicy(ptype: string, rule: readonly string[]) {
+    if (rule.length === 3) {
+      return {
+        ptype,
+        v0: rule[0],
+        v1: rule[1],
+        v2: rule[2],
+      }
+    }
+
+    return rule.reduce((acc, value, index) => {
+      acc[`v${index}`] = rule[index]
+      return acc
+    }, { ptype })
   }
 
   createFilteredPolicy(ptype, fieldIndex, ...fieldValues) {
