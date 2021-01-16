@@ -1,8 +1,18 @@
 // ToDo implement types
 // @ts-nocheck
 
-const Knex = require('knex');
-const { Helper } = require('casbin');
+import Knex from 'knex';
+import { Helper, Model } from 'casbin';
+
+type Policy = {
+  ptype: string;
+  v0: string;
+  v1?: string;
+  v2?: string;
+  v3?: string;
+  v4?: string;
+  v5?: string;
+};
 
 export class KnexAdapter {
   constructor(knex, tableName = 'policies') {
@@ -10,21 +20,15 @@ export class KnexAdapter {
     this.tableName = tableName;
   }
 
-  static async newAdapter(arg) {
-    const knex = this.isKnex(arg) ? arg : Knex(arg);
-
+  static async newAdapter(knex: Knex) {
     const adapter = new KnexAdapter(knex);
     await adapter.createTable();
 
     return adapter;
   }
 
-  static isKnex(arg) {
-    return typeof arg === 'function';
-  }
-
-  get policies() {
-    return knex('policies');
+  private get policiesTable() {
+    return this.knex('policies');
   }
 
   async createTable() {
@@ -49,18 +53,6 @@ export class KnexAdapter {
 
   async close() {
     await this.knex.destroy();
-  }
-
-  createPolicy(ptype, rule) {
-    return {
-      ptype,
-      v0: rule[0],
-      v1: rule[1],
-      v2: rule[2],
-      v3: rule[3],
-      v4: rule[4],
-      v5: rule[5],
-    };
   }
 
   createFilteredPolicy(ptype, fieldIndex, ...fieldValues) {
@@ -100,22 +92,11 @@ export class KnexAdapter {
     return policies;
   }
 
-  loadPolicyLine(policy, model) {
-    const policyLine =
-      policy.ptype +
-      ', ' +
-      [policy.v0, policy.v1, policy.v2, policy.v3, policy.v4, policy.v5]
-        .filter((v) => v)
-        .join(', ');
-
-    Helper.loadPolicyLine(policyLine, model);
-  }
-
   async loadPolicy(model) {
-    const policies = await this.policies.select();
+    const policies = await this.policiesTable.select();
 
     for (const policy of policies) {
-      this.loadPolicyLine(policy, model);
+      loadPolicyLine(policy, model);
     }
   }
 
@@ -123,24 +104,54 @@ export class KnexAdapter {
     await this.dropTable();
     await this.createTable();
 
-    await this.policies.insert([
+    await this.policiesTable.insert([
       ...this.createPoliciesFromAstMap(model.model.get('p')),
       ...this.createPoliciesFromAstMap(model.model.get('g')),
     ]);
   }
 
-  async addPolicy(sec, ...args) {
-    const policy = this.createPolicy(...args);
-    await this.policies.insert(policy);
+  async addPolicy(sec: string, ptype: string, rule: readonly string[]) {
+    const policy = createPolicy(ptype, rule);
+    await this.policiesTable.insert(policy);
   }
 
   async removePolicy(sec, ...args) {
     const policy = this.createPolicy(...args);
-    await this.policies.delete().where(policy);
+    await this.policiesTable.delete().where(policy);
   }
 
   async removeFilteredPolicy(sec, ...args) {
     const filteredPolicy = this.createFilteredPolicy(...args);
-    await this.policies.delete().where(filteredPolicy);
+    await this.policiesTable.delete().where(filteredPolicy);
   }
+}
+
+function loadPolicyLine(policy: Policy, model: Model) {
+  const policyLine =
+    policy.ptype +
+    ', ' +
+    [policy.v0, policy.v1, policy.v2, policy.v3, policy.v4, policy.v5]
+      .filter((v) => v)
+      .join(', ');
+
+  Helper.loadPolicyLine(policyLine, model);
+}
+
+function createPolicy(ptype: string, rule: readonly string[]): Policy {
+  if (rule.length === 3) {
+    return {
+      ptype,
+      v0: rule[0],
+      v1: rule[1],
+      v2: rule[2],
+    };
+  }
+
+  return rule.reduce(
+    (acc, value, index) => {
+      acc[`v${index}`] = rule[index];
+      return acc;
+    },
+    { ptype }
+  );
 }
