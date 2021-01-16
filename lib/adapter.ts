@@ -1,7 +1,15 @@
+// ToDo implement types
+// @ts-nocheck
+
 const Knex = require('knex');
 const { Helper } = require('casbin');
 
 class KnexAdapter {
+  constructor(knex, tableName = 'policies') {
+    this.knex = knex;
+    this.tableName = tableName ;
+  }
+
   static async newAdapter(arg) {
     const knex = this.isKnex(arg) ? arg : Knex(arg);
 
@@ -15,11 +23,10 @@ class KnexAdapter {
     return typeof arg === 'function';
   }
 
-  constructor(knex) {
-    this.knex = knex;
-    this.tableName = 'policies';
-    this.policies = knex(this.tableName);
+  get policies() {
+    return knex('policies');
   }
+
 
   async createTable() {
     const tableExists = await this.knex.schema.hasTable(this.tableName);
@@ -139,4 +146,9 @@ class KnexAdapter {
   }
 }
 
-module.exports = KnexAdapter;
+module.exports = KnexAdapter
+module.exports.default = KnexAdapter
+module.exports.KnexAdapter = KnexAdapter
+
+export { KnexAdapter }
+export default KnexAdapter
