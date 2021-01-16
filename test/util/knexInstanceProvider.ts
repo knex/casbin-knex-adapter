@@ -12,7 +12,9 @@ export enum Db {
 }
 
 export function getAllDbs(): Db[] {
-  return Object.values(Db);
+  return process.env.DB
+    ? (process.env.DB.split(' ') as Db[])
+    : Object.values(Db);
 }
 
 const pool = {
