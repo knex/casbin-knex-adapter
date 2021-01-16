@@ -8,7 +8,7 @@
   "license": "Apache-2.0",
   "scripts": {
     "build": "tsc",
-    "db:start": "docker-compose -f scripts/docker-compose.yml up --build -d mysql postgres mssql && docker-compose -f scripts/docker-compose.yml up initmssqlknexdb waitmysql waitpostgres",
+    "db:start": "docker-compose -f scripts/docker-compose.yml up --build -d mysql postgres mssql && docker-compose -f scripts/docker-compose.yml up waitmssql waitmysql waitpostgres",
     "db:stop": "docker-compose -f scripts/docker-compose.yml down",
     "lint": "eslint --format codeframe \"test/**/*.ts\"",
     "prettier": "prettier --write \"{lib,test}/**/*.{js,ts}\" index.ts",
