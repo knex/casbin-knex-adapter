@@ -4,7 +4,7 @@
 ![](https://github.com/knex/casbin-knex-adapter/workflows/ci/badge.svg)
 [![Coverage Status](https://coveralls.io/repos/knex/casbin-knex-adapter/badge.svg?branch=master)](https://coveralls.io/r/knex/casbin-knex-adapter?branch=master)
 
-[Knex](https://github.com/knex/knex) Adapter for [Node-Casbin](). Use this library for [policy storage](https://casbin.org/docs/en/adapters) in Casbin.
+[Knex](https://github.com/knex/knex) Adapter for [Node-Casbin](https://github.com/casbin/node-casbin). Use this library for [policy storage](https://casbin.org/docs/en/adapters) in Casbin.
 
 For full database support list, go to the Knex [documentation](https://knexjs.org/#Installation-node).
 

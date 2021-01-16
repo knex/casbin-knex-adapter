@@ -44,7 +44,7 @@ describe('adapter', () => {
         });
       });
 
-      describe('casbin support', () => {
+      describe('addPolicy', () => {
         it('supports adding policy via enforcer', async () => {
           await adapter.createTable();
 
@@ -65,6 +65,10 @@ describe('adapter', () => {
           if (
             !(await enforcer2.enforce('authorizedUser', 'resource', 'read'))
           ) {
+            throw new Error('User is not authorized');
+          }
+
+          if (!(await enforcer.enforce('authorizedUser', 'resource', 'read'))) {
             throw new Error('User is not authorized');
           }
 
@@ -122,6 +126,67 @@ describe('adapter', () => {
 
           if (
             await enforcer.enforce('unauthorizedUser', 'resource', '1', 'read')
+          ) {
+            throw new Error('User is authorized');
+          }
+        });
+      });
+
+      describe('deletePolicy', () => {
+        it('supports deleting policy via enforcer', async () => {
+          await adapter.createTable();
+
+          const enforcer = await newEnforcer(
+            resolve(__dirname, 'model.conf'),
+            adapter
+          );
+          await enforcer.loadPolicy();
+          await enforcer.addPolicy('authorizedUser', 'resource', 'read');
+
+          // Removing policy via adapter also removes it in adapter
+          await enforcer.removePolicy('authorizedUser', 'resource', 'read');
+
+          const enforcer2 = await newEnforcer(
+            resolve(__dirname, 'model.conf'),
+            adapter
+          );
+          await enforcer2.loadPolicy();
+
+          if (await enforcer.enforce('authorizedUser', 'resource', 'read')) {
+            throw new Error('User is authorized');
+          }
+
+          if (await enforcer2.enforce('authorizedUser', 'resource', 'read')) {
+            throw new Error('User is authorized');
+          }
+        });
+
+        it('supports deleting policy directly through adapter', async () => {
+          const model = new Model();
+          model.loadModel(resolve(__dirname, 'model-4.conf'));
+
+          await adapter.createTable();
+          await adapter.addPolicy('str', 'p', [
+            'authorizedUser',
+            'resource',
+            '1',
+            'read',
+          ]);
+          const enforcer = await newEnforcer(model, adapter);
+          await enforcer.loadPolicy();
+
+          await adapter.removePolicy('str', 'p', [
+            'authorizedUser',
+            'resource',
+            '1',
+            'read',
+          ]);
+
+          // We need to reload policy for enforcer to catch changes in adapter
+          await enforcer.loadPolicy();
+
+          if (
+            await enforcer.enforce('authorizedUser', 'resource', '1', 'read')
           ) {
             throw new Error('User is authorized');
           }
