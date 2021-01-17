@@ -1,5 +1,5 @@
 import type Knex from 'knex';
-import type { Adapter, Assertion, Model } from 'casbin';
+import type { Adapter, Assertion, BatchAdapter, Model } from 'casbin';
 import { Helper } from 'casbin';
 
 type Policy = {
@@ -14,7 +14,7 @@ type Policy = {
   v5?: string;
 };
 
-export class KnexAdapter implements Adapter {
+export class KnexAdapter implements Adapter, BatchAdapter {
   private readonly knex: Knex;
   private readonly tableName: string;
 
@@ -84,22 +84,41 @@ export class KnexAdapter implements Adapter {
     }
   }
 
-  async addPolicy(
-    sec: string,
-    ptype: string,
-    rule: readonly string[]
-  ): Promise<void> {
+  async addPolicy(sec: string, ptype: string, rule: string[]): Promise<void> {
     const policy = createPolicy(ptype, rule);
     await this.policiesTable.insert(policy);
+  }
+
+  async addPolicies(
+    sec: string,
+    ptype: string,
+    rules: string[][]
+  ): Promise<void> {
+    const policies = rules.map((rule) => {
+      return createPolicy(ptype, rule);
+    });
+
+    await this.policiesTable.insert(policies);
   }
 
   async removePolicy(
     sec: string,
     ptype: string,
-    rule: readonly string[]
+    rule: string[]
   ): Promise<void> {
     const policy = createPolicy(ptype, rule);
     await this.policiesTable.delete().where(policy);
+  }
+
+  async removePolicies(
+    sec: string,
+    ptype: string,
+    rules: string[][]
+  ): Promise<void> {
+    // ToDo Execute this in chunks
+    for (const rule of rules) {
+      await this.removePolicy(sec, ptype, rule);
+    }
   }
 
   async removeFilteredPolicy(
