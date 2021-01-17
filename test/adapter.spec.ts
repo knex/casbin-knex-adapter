@@ -19,6 +19,14 @@ describe('adapter', () => {
         return adapter.close();
       });
 
+      describe('newAdapter', () => {
+        it('correctly creates adapter', async () => {
+          await KnexAdapter.newAdapter(knex);
+          const tableExists = await knex.schema.hasTable('policies');
+          expect(tableExists).toBe(true);
+        });
+      });
+
       describe('createTable', () => {
         it('correctly creates table', async () => {
           await adapter.createTable();
@@ -41,6 +49,30 @@ describe('adapter', () => {
           await adapter.dropTable();
           const tableExists = await knex.schema.hasTable('policies');
           expect(tableExists).toBe(false);
+        });
+      });
+
+      describe('savePolicy', () => {
+        it('returns true when saving was successful', async () => {
+          await adapter.createTable();
+          const model = new Model();
+          model.loadModel(resolve(__dirname, 'model-4.conf'));
+          model.addPolicy('p', 'p', [
+            'authorizedUser',
+            'resource',
+            '1',
+            'read',
+          ]);
+
+          const result = await adapter.savePolicy(model);
+
+          expect(result).toBe(true);
+        });
+
+        it('returns false when saving was not successful', async () => {
+          const result = await adapter.savePolicy(null as Model);
+
+          expect(result).toBe(false);
         });
       });
 
@@ -90,7 +122,7 @@ describe('adapter', () => {
           model.loadModel(resolve(__dirname, 'model-4.conf'));
 
           await adapter.createTable();
-          await adapter.addPolicy('str', 'p', [
+          await adapter.addPolicy('p', 'p', [
             'authorizedUser',
             'resource',
             '1',
@@ -166,7 +198,7 @@ describe('adapter', () => {
           model.loadModel(resolve(__dirname, 'model-4.conf'));
 
           await adapter.createTable();
-          await adapter.addPolicy('str', 'p', [
+          await adapter.addPolicy('p', 'p', [
             'authorizedUser',
             'resource',
             '1',
@@ -175,7 +207,7 @@ describe('adapter', () => {
           const enforcer = await newEnforcer(model, adapter);
           await enforcer.loadPolicy();
 
-          await adapter.removePolicy('str', 'p', [
+          await adapter.removePolicy('p', 'p', [
             'authorizedUser',
             'resource',
             '1',

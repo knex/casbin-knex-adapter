@@ -1,5 +1,5 @@
 import type Knex from 'knex';
-import type { Assertion, Model } from 'casbin';
+import type { Adapter, Assertion, Model } from 'casbin';
 import { Helper } from 'casbin';
 
 type Policy = {
@@ -14,7 +14,7 @@ type Policy = {
   v5?: string;
 };
 
-export class KnexAdapter {
+export class KnexAdapter implements Adapter {
   private readonly knex: Knex;
   private readonly tableName: string;
 
@@ -66,14 +66,22 @@ export class KnexAdapter {
     }
   }
 
-  async savePolicy(model: Model): Promise<void> {
-    await this.dropTable();
-    await this.createTable();
+  async savePolicy(model: Model): Promise<boolean> {
+    try {
+      await this.dropTable();
+      await this.createTable();
 
-    await this.policiesTable.insert([
-      ...createPoliciesFromAstMap(model.model.get('p')),
-      ...createPoliciesFromAstMap(model.model.get('g')),
-    ]);
+      const pPolicies = createPoliciesFromAstMap(model.model.get('p'));
+      const gPolicies = createPoliciesFromAstMap(model.model.get('g'));
+      const combinedPolicies = [...pPolicies, ...gPolicies];
+
+      if (combinedPolicies.length > 0) {
+        await this.policiesTable.insert(combinedPolicies);
+      }
+      return true;
+    } catch (err) {
+      return false;
+    }
   }
 
   async addPolicy(
