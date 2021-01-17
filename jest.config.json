@@ -16,6 +16,14 @@
     "<rootDir>/node_modules/",
     "<rootDir>/coverage/"
   ],
+  "coverageThreshold": {
+    "global": {
+      "statements": 75,
+      "branches": 30,
+      "functions": 80,
+      "lines": 75
+    }
+  },
   "globals": {
     "ts-jest": {
       "diagnostics": false
