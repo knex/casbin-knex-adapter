@@ -1,6 +1,7 @@
 import type Knex from 'knex';
 import type { Adapter, Assertion, BatchAdapter, Model } from 'casbin';
 import { Helper } from 'casbin';
+import { chunk } from './utils';
 
 type Policy = {
   [key: string]: string | undefined;
@@ -14,17 +15,27 @@ type Policy = {
   v5?: string;
 };
 
+export type KnexAdapterOptions = {
+  tableName?: string;
+  chunkSize?: number;
+};
+
 export class KnexAdapter implements Adapter, BatchAdapter {
   private readonly knex: Knex;
   private readonly tableName: string;
+  private readonly chunkSize: number;
 
-  constructor(knex: Knex, tableName = 'policies') {
+  constructor(knex: Knex, options?: KnexAdapterOptions) {
     this.knex = knex;
-    this.tableName = tableName;
+    this.tableName = options?.tableName || 'policies';
+    this.chunkSize = options?.chunkSize || 100;
   }
 
-  static async newAdapter(knex: Knex): Promise<KnexAdapter> {
-    const adapter = new KnexAdapter(knex);
+  static async newAdapter(
+    knex: Knex,
+    options?: KnexAdapterOptions
+  ): Promise<KnexAdapter> {
+    const adapter = new KnexAdapter(knex, options);
     await adapter.createTable();
 
     return adapter;
@@ -98,7 +109,10 @@ export class KnexAdapter implements Adapter, BatchAdapter {
       return createPolicy(ptype, rule);
     });
 
-    await this.policiesTable.insert(policies);
+    const insertChunks = chunk(policies, this.chunkSize);
+    for (const insertChunk of insertChunks) {
+      await this.policiesTable.insert(insertChunk);
+    }
   }
 
   async removePolicy(
@@ -115,9 +129,9 @@ export class KnexAdapter implements Adapter, BatchAdapter {
     ptype: string,
     rules: string[][]
   ): Promise<void> {
-    // ToDo Execute this in chunks
-    for (const rule of rules) {
-      await this.removePolicy(sec, ptype, rule);
+    const deleteChunks = chunk(rules, this.chunkSize);
+    for (const deleteChunk of deleteChunks) {
+      await this.removePolicy(sec, ptype, deleteChunk);
     }
   }
 
