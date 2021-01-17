@@ -70,7 +70,7 @@ describe('adapter', () => {
         });
 
         it('returns false when saving was not successful', async () => {
-          const result = await adapter.savePolicy(null as Model);
+          const result = await adapter.savePolicy((null as unknown) as Model);
 
           expect(result).toBe(false);
         });
@@ -146,6 +146,108 @@ describe('adapter', () => {
 
           if (
             await enforcer.enforce('authorizedUser', 'resource', '1', 'write')
+          ) {
+            throw new Error('User is authorized');
+          }
+
+          if (
+            await enforcer.enforce('authorizedUser', 'resource2', '1', 'read')
+          ) {
+            throw new Error('User is not authorized');
+          }
+
+          if (
+            await enforcer.enforce('unauthorizedUser', 'resource', '1', 'read')
+          ) {
+            throw new Error('User is authorized');
+          }
+        });
+      });
+
+      describe('addPolicies', () => {
+        it('supports adding policies via enforcer', async () => {
+          await adapter.createTable();
+
+          const enforcer = await newEnforcer(
+            resolve(__dirname, 'model.conf'),
+            adapter
+          );
+          await enforcer.loadPolicy();
+          await enforcer.addPolicies([
+            ['authorizedUser', 'resource', 'read'],
+            ['authorizedUser', 'resource', 'write'],
+          ]);
+
+          const adapter2 = new KnexAdapter(knex);
+          const enforcer2 = await newEnforcer(
+            resolve(__dirname, 'model.conf'),
+            adapter2
+          );
+          await enforcer2.loadPolicy();
+
+          if (
+            !(await enforcer2.enforce('authorizedUser', 'resource', 'read'))
+          ) {
+            throw new Error('User is not authorized');
+          }
+
+          if (!(await enforcer.enforce('authorizedUser', 'resource', 'read'))) {
+            throw new Error('User is not authorized');
+          }
+
+          if (
+            !(await enforcer2.enforce('authorizedUser', 'resource', 'write'))
+          ) {
+            throw new Error('User is not authorized');
+          }
+
+          if (
+            !(await enforcer.enforce('authorizedUser', 'resource', 'write'))
+          ) {
+            throw new Error('User is not authorized');
+          }
+
+          if (await enforcer2.enforce('authorizedUser', 'resource2', 'read')) {
+            throw new Error('User is not authorized');
+          }
+
+          if (await enforcer2.enforce('unauthorizedUser', 'resource', 'read')) {
+            throw new Error('User is authorized');
+          }
+        });
+
+        it('supports adding policy directly through adapter', async () => {
+          const model = new Model();
+          model.loadModel(resolve(__dirname, 'model-4.conf'));
+
+          await adapter.createTable();
+          await adapter.addPolicies('p', 'p', [
+            ['authorizedUser', 'resource', '1', 'read'],
+            ['authorizedUser', 'resource', '1', 'write'],
+          ]);
+
+          const enforcer = await newEnforcer(model, adapter);
+          await enforcer.loadPolicy();
+
+          if (
+            !(await enforcer.enforce('authorizedUser', 'resource', '1', 'read'))
+          ) {
+            throw new Error('User is not authorized');
+          }
+
+          if (
+            !(await enforcer.enforce(
+              'authorizedUser',
+              'resource',
+              '1',
+              'write'
+            ))
+          ) {
+            throw new Error('User is not authorized');
+          }
+
+          if (
+            await enforcer.enforce('authorizedUser', 'resource', '2', 'read')
           ) {
             throw new Error('User is authorized');
           }

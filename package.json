@@ -1,6 +1,6 @@
 {
   "name": "casbin-knex-adapter",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Knex adapter for Casbin",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
