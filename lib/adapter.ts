@@ -18,17 +18,20 @@ type Policy = {
 export type KnexAdapterOptions = {
   tableName?: string;
   chunkSize?: number;
+  concurrentDeletes?: number;
 };
 
 export class KnexAdapter implements Adapter, BatchAdapter {
   private readonly knex: Knex;
   private readonly tableName: string;
   private readonly chunkSize: number;
+  private readonly concurrentDeletes: number;
 
   constructor(knex: Knex, options?: KnexAdapterOptions) {
     this.knex = knex;
     this.tableName = options?.tableName || 'policies';
     this.chunkSize = options?.chunkSize || 100;
+    this.concurrentDeletes = options?.concurrentDeletes || 5;
   }
 
   static async newAdapter(
@@ -129,9 +132,17 @@ export class KnexAdapter implements Adapter, BatchAdapter {
     ptype: string,
     rules: string[][]
   ): Promise<void> {
-    const deleteChunks = chunk(rules, this.chunkSize);
-    for (const deleteChunk of deleteChunks) {
-      await this.removePolicy(sec, ptype, deleteChunk);
+    const deleteChunks: string[][][] = (chunk(
+      rules,
+      this.concurrentDeletes
+    ) as unknown) as string[][][];
+
+    for (const chunk of deleteChunks) {
+      const promises = chunk.map((rule) => {
+        return this.removePolicy(sec, ptype, rule);
+      });
+
+      await Promise.all(promises);
     }
   }
 
