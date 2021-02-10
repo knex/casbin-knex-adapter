@@ -43,6 +43,7 @@ const KnexAdapter = require('casbin-knex-adapter');
   // Modify policy
   // await enforcer.addPolicy(...)
   // await enforcer.removePolicy(...)
+  // await adapter.removePolicyWhere({ 'v0': '00001' }) // needs to be reloaded from enforcer afterwards
 
   // Rewrite entire policy in DB
   await enforcer.savePolicy();
