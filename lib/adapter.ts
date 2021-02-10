@@ -15,6 +15,12 @@ type Policy = {
   v5?: string;
 };
 
+type CasbinColumn = 'v0' | 'v1' | 'v2' | 'v3' | 'v4' | 'v5';
+
+export type DeleteWhereParam = {
+  [key in CasbinColumn]?: string;
+};
+
 export type KnexAdapterOptions = {
   tableName?: string;
   chunkSize?: number;
@@ -125,6 +131,10 @@ export class KnexAdapter implements Adapter, BatchAdapter {
   ): Promise<void> {
     const policy = createPolicy(ptype, rule);
     await this.policiesTable.delete().where(policy);
+  }
+
+  async removePoliciesWhere(whereParam: DeleteWhereParam): Promise<void> {
+    await this.policiesTable.delete().where(whereParam);
   }
 
   async removePolicies(

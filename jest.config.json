@@ -14,14 +14,15 @@
   "reporters": [ "default" ],
   "coveragePathIgnorePatterns": [
     "<rootDir>/node_modules/",
-    "<rootDir>/coverage/"
+    "<rootDir>/coverage/",
+    "<rootDir>/test/util/*.ts|tsx"
   ],
   "coverageThreshold": {
     "global": {
-      "statements": 75,
-      "branches": 25,
-      "functions": 75,
-      "lines": 75
+      "statements": 84,
+      "branches": 48,
+      "functions": 93,
+      "lines": 84
     }
   },
   "globals": {

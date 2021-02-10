@@ -1,4 +1,4 @@
-import * as Knex from 'knex';
+import type Knex from 'knex';
 import { getAllDbs, getKnexForDb } from './util/knexInstanceProvider';
 import { KnexAdapter } from '../lib/adapter';
 import { Model, newEnforcer } from 'casbin';
@@ -201,35 +201,42 @@ describe('adapter', () => {
           );
           await enforcer2.loadPolicy();
 
-          if (
-            !(await enforcer2.enforce('authorizedUser', 'resource', 'read'))
-          ) {
-            throw new Error('User is not authorized');
-          }
-
-          if (!(await enforcer.enforce('authorizedUser', 'resource', 'read'))) {
-            throw new Error('User is not authorized');
-          }
-
-          if (
-            !(await enforcer2.enforce('authorizedUser', 'resource', 'write'))
-          ) {
-            throw new Error('User is not authorized');
-          }
-
-          if (
-            !(await enforcer.enforce('authorizedUser', 'resource', 'write'))
-          ) {
-            throw new Error('User is not authorized');
-          }
-
-          if (await enforcer2.enforce('authorizedUser', 'resource2', 'read')) {
-            throw new Error('User is not authorized');
-          }
-
-          if (await enforcer2.enforce('unauthorizedUser', 'resource', 'read')) {
-            throw new Error('User is authorized');
-          }
+          await expectAuthorized(
+            enforcer2,
+            'authorizedUser',
+            'resource',
+            'read'
+          );
+          await expectAuthorized(
+            enforcer,
+            'authorizedUser',
+            'resource',
+            'read'
+          );
+          await expectAuthorized(
+            enforcer2,
+            'authorizedUser',
+            'resource',
+            'write'
+          );
+          await expectAuthorized(
+            enforcer,
+            'authorizedUser',
+            'resource',
+            'write'
+          );
+          await expectNotAuthorized(
+            enforcer2,
+            'authorizedUser',
+            'resource2',
+            'read'
+          );
+          await expectNotAuthorized(
+            enforcer2,
+            'unauthorizedUser',
+            'resource',
+            'read'
+          );
         });
 
         it('supports adding policy directly through adapter', async () => {
@@ -445,6 +452,56 @@ describe('adapter', () => {
             'authorizedUser3',
             'resource',
             'read'
+          );
+        });
+
+        it('supports deleting policies directly through adapter by criteria', async () => {
+          const model = new Model();
+          model.loadModel(resolve(__dirname, 'model.conf'));
+
+          await adapter.createTable();
+          await adapter.addPolicies('p', 'p', [
+            ['authorizedUser', 'resource', 'read'],
+            ['authorizedUser', 'resource', 'write'],
+            ['authorizedUser2', 'resource', 'read'],
+            ['authorizedUser2', 'resource', 'write'],
+            ['authorizedUser', 'resource2', 'read'],
+            ['authorizedUser', 'resource2', 'write'],
+            ['authorizedUser2', 'resource2', 'read'],
+            ['authorizedUser2', 'resource2', 'write'],
+          ]);
+
+          const enforcer = await newEnforcer(model, adapter);
+          await enforcer.loadPolicy();
+
+          await adapter.removePoliciesWhere({ v1: 'resource2' });
+
+          // We need to reload policy for enforcer to catch changes in adapter
+          await enforcer.loadPolicy();
+
+          await expectNotAuthorized(
+            enforcer,
+            'authorizedUser',
+            'resource2',
+            'read'
+          );
+          await expectNotAuthorized(
+            enforcer,
+            'authorizedUser2',
+            'resource2',
+            'read'
+          );
+          await expectAuthorized(
+            enforcer,
+            'authorizedUser',
+            'resource',
+            'read'
+          );
+          await expectAuthorized(
+            enforcer,
+            'authorizedUser',
+            'resource',
+            'write'
           );
         });
       });
