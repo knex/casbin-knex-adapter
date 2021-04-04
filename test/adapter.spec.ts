@@ -350,6 +350,58 @@ describe('adapter', () => {
         });
       });
 
+      describe('removeFilteredPolicy', () => {
+        it('supports deleting policies directly through adapter by criteria', async () => {
+          const model = new Model();
+          model.loadModel(resolve(__dirname, 'model.conf'));
+
+          await adapter.createTable();
+          await adapter.addPolicies('p', 'p', [
+            ['authorizedUser', 'resource', 'read'],
+            ['authorizedUser', 'resource', 'write'],
+            ['authorizedUser2', 'resource', 'read'],
+            ['authorizedUser2', 'resource', 'write'],
+            ['authorizedUser', 'resource2', 'read'],
+            ['authorizedUser', 'resource2', 'write'],
+            ['authorizedUser2', 'resource2', 'read'],
+            ['authorizedUser2', 'resource2', 'write'],
+          ]);
+
+          const enforcer = await newEnforcer(model, adapter);
+          await enforcer.loadPolicy();
+
+          await adapter.removeFilteredPolicy('p', 'p', 1, 'resource2');
+
+          // We need to reload policy for enforcer to catch changes in adapter
+          await enforcer.loadPolicy();
+
+          await expectNotAuthorized(
+            enforcer,
+            'authorizedUser',
+            'resource2',
+            'read'
+          );
+          await expectNotAuthorized(
+            enforcer,
+            'authorizedUser2',
+            'resource2',
+            'read'
+          );
+          await expectAuthorized(
+            enforcer,
+            'authorizedUser',
+            'resource',
+            'read'
+          );
+          await expectAuthorized(
+            enforcer,
+            'authorizedUser',
+            'resource',
+            'write'
+          );
+        });
+      });
+
       describe('removePolicies', () => {
         it('supports deleting policies via enforcer', async () => {
           await adapter.createTable();
