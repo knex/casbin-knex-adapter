@@ -142,10 +142,10 @@ export class KnexAdapter implements Adapter, BatchAdapter {
     ptype: string,
     rules: string[][]
   ): Promise<void> {
-    const deleteChunks: string[][][] = (chunk(
+    const deleteChunks: string[][][] = chunk(
       rules,
       this.concurrentDeletes
-    ) as unknown) as string[][][];
+    ) as unknown as string[][][];
 
     for (const chunk of deleteChunks) {
       const promises = chunk.map((rule) => {
