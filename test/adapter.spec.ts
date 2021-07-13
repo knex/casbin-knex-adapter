@@ -71,7 +71,7 @@ describe('adapter', () => {
         });
 
         it('returns false when saving was not successful', async () => {
-          const result = await adapter.savePolicy((null as unknown) as Model);
+          const result = await adapter.savePolicy(null as unknown as Model);
 
           expect(result).toBe(false);
         });
