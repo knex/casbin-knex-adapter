@@ -51,7 +51,7 @@ export class KnexAdapter implements Adapter, BatchAdapter {
   }
 
   private get policiesTable() {
-    return this.knex('policies');
+    return this.knex(this.tableName);
   }
 
   async createTable(): Promise<void> {
