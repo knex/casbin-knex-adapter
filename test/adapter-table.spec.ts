@@ -33,7 +33,9 @@ describe('adapter with a custom tablelName', () => {
         it('correctly creates table', async () => {
           await adapter.createTable();
           const tableExists = await knex.schema.hasTable('casbin');
+          const wrongTableExists = await knex.schema.hasTable('policies');
           expect(tableExists).toBe(true);
+          expect(wrongTableExists).toBe(false);
         });
       });
 
