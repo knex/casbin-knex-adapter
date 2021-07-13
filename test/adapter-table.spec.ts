@@ -23,7 +23,9 @@ describe('adapter with a custom tablelName', () => {
 
       describe('newAdapter', () => {
         it('correctly creates adapter', async () => {
-          await KnexAdapter.newAdapter(knex);
+          await KnexAdapter.newAdapter(knex, {
+            tableName: 'casbin',
+          });
           const tableExists = await knex.schema.hasTable('casbin');
           expect(tableExists).toBe(true);
         });
