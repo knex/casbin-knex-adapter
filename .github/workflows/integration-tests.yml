@@ -67,3 +67,11 @@ jobs:
             --file "scripts/docker-compose.yml" \
             down
         if: matrix.database-type != 'sqlite'
+
+  automerge:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: fastify/github-action-merge-dependabot@v2.4.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
