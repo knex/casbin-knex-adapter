@@ -27,7 +27,7 @@ const KnexAdapter = require('casbin-knex-adapter');
   // Instantiate DB connection
   const knex = Knex(knexOptions)
   // Create adapter
-  const adapter = await KnexAdapter.newAdapter({ knex });
+  const adapter = await KnexAdapter.newAdapter(knex);
 
   // Create casbin enforcer
   const enforcer = await casbin.newEnforcer('model.conf', adapter);
