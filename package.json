@@ -1,10 +1,10 @@
 {
-  "name": "@rockme/casbin-knex-adapter",
+  "name": "casbin-knex-adapter",
   "version": "0.7.3",
   "description": "Knex adapter for Casbin",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "repository": "https://github.com/transtone/casbin-knex-adapter",
+  "repository": "https://github.com/knex/casbin-knex-adapter",
   "author": "Jakub Sarnowski <sarneeh@gmail.com>",
   "contributors": [
     {
