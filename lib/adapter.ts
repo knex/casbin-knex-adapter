@@ -1,4 +1,4 @@
-import type Knex from 'knex';
+import { Knex } from 'knex';
 import type { Adapter, Assertion, BatchAdapter, Model } from 'casbin';
 import { Helper } from 'casbin';
 import { chunk } from './utils';
